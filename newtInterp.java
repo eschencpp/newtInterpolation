@@ -1,6 +1,8 @@
 /*
-    * Eric Chen
-    * CS3010 Assignment 4
+    Eric Chen
+    CS3010 Assignment 4: Newton's Interpolation Algorithm
+
+    Command line arguments java newtInterp.java [-rand (optional)] [(int) number of ordered pairs (only if -rand called)] [file name]
 */
 
 import java.io.BufferedReader;
@@ -129,8 +131,11 @@ public class newtInterp {
     }
     public static void main(String[] args) {
         int n = 0; //Number of ordered pairs
+        String userIn = ""; //User input (To enable q to quit)
         double z = 0; // X value that is evaluated - First argument taken
         String inputFile;
+        long timeStart = 0;
+        long timeEnd = 0;
 
         // Command line input for input file
         if(args.length == 1){
@@ -140,50 +145,63 @@ public class newtInterp {
             inputFile = args[args.length - 1]; //If multiple arguments, input file is the last entry
         }
 
-        //Take user input for z
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Enter the x point to evaluate at: ");
-        z = sc.nextDouble();
+        //Keep prompting user to enter in x values until they enter q to quit
+        while(!userIn.equals('q') || !userIn.equals('Q')){
+            //Take user input for z
+            Scanner sc = new Scanner(System.in);
+            System.out.print("Enter the x point to evaluate at: ");
+            userIn = sc.nextLine();
+            if(userIn.equals("q") || userIn.equals("Q") ){
+                return;
+            }
+            z = Double.parseDouble(userIn);
 
-        //If the user uses flag -rand, example command line input: -rand 5 randGen.pnt
-        if(args[0].equals("-rand")){
-            n = Integer.parseInt(args[1]);
-            randFileGen(args[args.length -1], n);
+            //If the user uses flag -rand, example command line input: -rand 5 randGen.pnt
+            if(args[0].equals("-rand")){
+                n = Integer.parseInt(args[1]);
+                randFileGen(args[args.length -1], n);
+                double[] xs = new double[n];
+                double[] ys = new double [n];
+                double[] coeff = new double[n];
+                System.out.println("The answer is: "+EvalNewton(xs, ys, coeff, z, inputFile));
+            } else{
+
+            //Find n by reading number of inputs in each line of file
+            try{
+                BufferedReader file = new BufferedReader(new FileReader(System.getProperty("user.dir").concat("/" + inputFile)));
+                String xVals = file.readLine();
+                String yVals = file.readLine();
+                //Split string of x and y values into array
+                String [] xSplit = xVals.trim().split("\\s+");
+                String [] ySplit = yVals.trim().split("\\s+");
+
+                //Validate that each x and y value have a pair
+                if(xSplit.length != ySplit.length){
+                    System.out.println("Error. File does not have the same number of x and y values.");
+                    return;
+                }
+                
+                n = xSplit.length;
+                file.close();
+            }
+
+            catch(Exception e){
+                e.printStackTrace();
+                System.out.println("Error accessing file.");
+            }
+
+            //Initialize arrays of size n
             double[] xs = new double[n];
             double[] ys = new double [n];
             double[] coeff = new double[n];
-            System.out.println("\nThe answer is: "+EvalNewton(xs, ys, coeff, z, inputFile));
-        } else{
 
-        //Find n by reading number of inputs in each line of file
-        try{
-            BufferedReader file = new BufferedReader(new FileReader(System.getProperty("user.dir").concat("/" + inputFile)));
-            String xVals = file.readLine();
-            String yVals = file.readLine();
-            //Split string of x and y values into array
-            String [] xSplit = xVals.trim().split("\\s+");
-            String [] ySplit = yVals.trim().split("\\s+");
-
-            if(xSplit.length != ySplit.length){
-                System.out.println("Error. File does not have the same number of x and y values.");
-                return;
+            timeStart = System.nanoTime();
+            //If no -rand, run program with normal input file
+            System.out.println("\nThe interpolated value is: "+EvalNewton(xs, ys, coeff, z, inputFile));
+            timeEnd = System.nanoTime();
+            System.out.printf("The interpolation calculation took: %d nanoseconds\n", (int)(timeEnd - timeStart));
+            System.out.println("Successfully interpolated the point. Enter another point to evaluate or exit with q.");
             }
-            
-            n = xSplit.length;
-            file.close();
-        }
-
-        catch(Exception e){
-            e.printStackTrace();
-            System.out.println("Error accessing file.");
-        }
-
-        //Initialize arrays of size n
-        double[] xs = new double[n];
-        double[] ys = new double [n];
-        double[] coeff = new double[n];
-
-        System.out.println("\nThe answer is: "+EvalNewton(xs, ys, coeff, z, inputFile));
-        }
+        }   
     }
 }
