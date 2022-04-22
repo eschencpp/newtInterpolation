@@ -5,18 +5,23 @@
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.Scanner;
+import java.util.Random;
 
 public class newtInterp {
     
+    static int n;
+
     public static void Coeff(double[] xs, double[] ys, double[] coeff){
-        int n = xs.length;
+        n = xs.length;
 
         for(int i = 0; i < n; i++){
             coeff[i] = ys[i];
         }
 
         for(int j = 1; j < n; j++){
-            System.out.println("j is "+ j);
+            //System.out.println("j is "+ j);
             for(int i = n - 1; i > j - 1; i--){
                 
                 coeff[i] = ((coeff[i] - coeff[i-1]) / (xs[i] - xs[i - j]));
@@ -25,16 +30,17 @@ public class newtInterp {
     }
 
     // z is the point evaluating at
-    public static double EvalNewton(double[] xs, double[] ys, double[] coeff, double z){
+    public static double EvalNewton(double[] xs, double[] ys, double[] coeff, double z, String input){
 
-        fillArray(xs, ys);
+        fillArray(xs, ys, input);
         Coeff(xs, ys, coeff);
+        /*
         for(int i = 0; i< xs.length; i++){
             System.out.printf("Point %d is: (%f,%f)",i+1,xs[i],ys[i]);
         }
         for(int i = 0; i< xs.length; i++){
             System.out.printf("\nCoeff %d is: (%f)",i+1,coeff[i]);
-        }
+        } */
 
         double result = 0;
         result = coeff[xs.length - 1];
@@ -49,10 +55,10 @@ public class newtInterp {
 
     //Fill x and y arrays
 
-    public static void fillArray(double[] xs, double[] ys){
+    public static void fillArray(double[] xs, double[] ys, String input){
 
         try{
-            BufferedReader file = new BufferedReader(new FileReader(System.getProperty("user.dir").concat("/example.pnt")));
+            BufferedReader file = new BufferedReader(new FileReader(System.getProperty("user.dir").concat("/" + input)));
             String xVals = file.readLine();
             String yVals = file.readLine();
             //Split string of x and y values into array
@@ -76,13 +82,108 @@ public class newtInterp {
             e.printStackTrace();
             System.out.println("Error accessing file.");
         }
+    }
 
+    public static void randFileGen(String fileName, int n){
+        Random rand = new Random();
+        double randX = 0;
+        double randY = 0;
+        double[] xValues = new double[n];
+        double[] yValues = new double[n];
+
+        //Fills X & Y arrays of size n with random floating point numbers. Checks X values for duplicates.
+        for(int i = 0; i<n; i++){
+            randX = -100 + rand.nextInt(200) + rand.nextDouble();
+            xValues[i] = randX;
+            while(i > 0 && (xValues[i - 1] == xValues[i])){
+                randX = -100 + rand.nextInt(200) + rand.nextDouble();
+                xValues[i] = randX;
+            }
+
+            randY = -100 + rand.nextInt(200) + rand.nextDouble();
+            yValues[i] = randY;
+            while(i > 0 && (yValues[i - 1] == yValues[i])){
+                randY = -100 + rand.nextInt(200) + rand.nextDouble();
+                yValues[i] = randY;
+                System.out.println(yValues[i]);
+            }
+        }
+
+        try{
+            FileWriter writer = new FileWriter(System.getProperty("user.dir").concat("/" + fileName));
+            for(int i = 0; i<n; i++){
+                writer.write(xValues[i] + "\t");
+            }
+            writer.write("\n");
+            for(int i = 0; i<n; i++){
+                writer.write(yValues[i] + "\t");
+            }
+            writer.close();
+        }
+
+        catch(Exception e){
+            e.getStackTrace();
+            System.out.println("Random number generator could not produce file.");
+        }
+        
     }
     public static void main(String[] args) {
+        int n = 0; //Number of ordered pairs
+        double z = 0; // X value that is evaluated - First argument taken
+        String inputFile;
 
-        double[] xs = new double[5];
-        double[] ys = new double [5];
-        double[] coeff = new double[5];
-        System.out.println("\nThe answer is: "+EvalNewton(xs, ys, coeff, 2));
+        // Command line input for input file
+        if(args.length == 1){
+            inputFile = args[0];  //If only 1 argument, the input file is the first entry
+        }
+        else{
+            inputFile = args[args.length - 1]; //If multiple arguments, input file is the last entry
+        }
+
+        //Take user input for z
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter the x point to evaluate at: ");
+        z = sc.nextDouble();
+
+        //If the user uses flag -rand, example command line input: -rand 5 randGen.pnt
+        if(args[0].equals("-rand")){
+            n = Integer.parseInt(args[1]);
+            randFileGen(args[args.length -1], n);
+            double[] xs = new double[n];
+            double[] ys = new double [n];
+            double[] coeff = new double[n];
+            System.out.println("\nThe answer is: "+EvalNewton(xs, ys, coeff, z, inputFile));
+        } else{
+
+        //Find n by reading number of inputs in each line of file
+        try{
+            BufferedReader file = new BufferedReader(new FileReader(System.getProperty("user.dir").concat("/" + inputFile)));
+            String xVals = file.readLine();
+            String yVals = file.readLine();
+            //Split string of x and y values into array
+            String [] xSplit = xVals.trim().split("\\s+");
+            String [] ySplit = yVals.trim().split("\\s+");
+
+            if(xSplit.length != ySplit.length){
+                System.out.println("Error. File does not have the same number of x and y values.");
+                return;
+            }
+            
+            n = xSplit.length;
+            file.close();
+        }
+
+        catch(Exception e){
+            e.printStackTrace();
+            System.out.println("Error accessing file.");
+        }
+
+        //Initialize arrays of size n
+        double[] xs = new double[n];
+        double[] ys = new double [n];
+        double[] coeff = new double[n];
+
+        System.out.println("\nThe answer is: "+EvalNewton(xs, ys, coeff, z, inputFile));
+        }
     }
 }
