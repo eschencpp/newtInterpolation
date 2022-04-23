@@ -33,25 +33,33 @@ public class newtInterp {
 
     // z is the point evaluating at
     public static double EvalNewton(double[] xs, double[] ys, double[] coeff, double z, String input){
+        long coeffStart = 0;
+        long coeffEnd = 0;
+        long evalStart = 0;
+        long evalEnd = 0;
 
+        long fillStart = 0;
+        long fillEnd = 0;
+
+        fillStart = System.nanoTime();
         fillArray(xs, ys, input);
+        
+        //Timing calculating coefficent array
+        coeffStart = System.nanoTime();
         Coeff(xs, ys, coeff);
-        /*
-        for(int i = 0; i< xs.length; i++){
-            System.out.printf("Point %d is: (%f,%f)",i+1,xs[i],ys[i]);
-        }
-        for(int i = 0; i< xs.length; i++){
-            System.out.printf("\nCoeff %d is: (%f)",i+1,coeff[i]);
-        } */
+        coeffEnd = System.nanoTime();
+        System.out.printf("The time to compute the coefficients array is: %.2f nanoseconds", (double)((double)coeffEnd - (double)coeffStart));
 
         double result = 0;
         result = coeff[xs.length - 1];
 
+        evalStart = System.nanoTime();
         for(int i = xs.length - 2; i >= 0; i--){
             //System.out.println("result is: "+ result);
             result = (result * (z - xs[i])) + coeff[i];
         }
-
+        evalEnd = System.nanoTime();
+        System.out.printf("\nThe time to evaluate the data is: %.2f nanoseconds", (double)((double)evalEnd - (double)evalStart));
         return result;
     }
 
@@ -134,6 +142,7 @@ public class newtInterp {
         String userIn = ""; //User input (To enable q to quit)
         double z = 0; // X value that is evaluated - First argument taken
         String inputFile;
+        boolean fileGen = false;
         long timeStart = 0;
         long timeEnd = 0;
 
@@ -149,8 +158,13 @@ public class newtInterp {
         while(!userIn.equals('q') || !userIn.equals('Q')){
             //Take user input for z
             Scanner sc = new Scanner(System.in);
-            System.out.print("Enter the x point to evaluate at: ");
+            System.out.print("Enter the x point to evaluate at (q to exit): ");
             userIn = sc.nextLine();
+            //Make sure input is not empty
+            while(userIn.isEmpty()){
+                System.out.printf("\nBlank input. Please enter a number (q to exit): ");
+                userIn = sc.nextLine();
+            }
             if(userIn.equals("q") || userIn.equals("Q") ){
                 return;
             }
@@ -159,7 +173,11 @@ public class newtInterp {
             //If the user uses flag -rand, example command line input: -rand 5 randGen.pnt
             if(args[0].equals("-rand")){
                 n = Integer.parseInt(args[1]);
-                randFileGen(args[args.length -1], n);
+                //Check to make sure file is only randomized once.
+                if(!fileGen){
+                    randFileGen(args[args.length -1], n);
+                    fileGen = true;
+                }
                 double[] xs = new double[n];
                 double[] ys = new double [n];
                 double[] coeff = new double[n];
@@ -199,8 +217,8 @@ public class newtInterp {
             //If no -rand, run program with normal input file
             System.out.println("\nThe interpolated value is: "+EvalNewton(xs, ys, coeff, z, inputFile));
             timeEnd = System.nanoTime();
-            System.out.printf("The interpolation calculation took: %d nanoseconds\n", (int)(timeEnd - timeStart));
-            System.out.println("Successfully interpolated the point. Enter another point to evaluate or exit with q.");
+            //System.out.printf("The interpolation calculation took: %d nanoseconds\n", (double)(timeEnd - timeStart));
+            System.out.println("Successfully interpolated the point. Enter another point to evaluate or exit with q.\n");
             }
         }   
     }
