@@ -38,10 +38,6 @@ public class newtInterp {
         long evalStart = 0;
         long evalEnd = 0;
 
-        long fillStart = 0;
-        long fillEnd = 0;
-
-        fillStart = System.nanoTime();
         fillArray(xs, ys, input);
         
         //Timing calculating coefficent array
@@ -158,7 +154,7 @@ public class newtInterp {
         while(!userIn.equals('q') || !userIn.equals('Q')){
             //Take user input for z
             Scanner sc = new Scanner(System.in);
-            System.out.print("Enter the x point to evaluate at (q to exit): ");
+            System.out.print("\nEnter the x point to evaluate at (q to exit): ");
             userIn = sc.nextLine();
             //Make sure input is not empty
             while(userIn.isEmpty()){
@@ -181,7 +177,7 @@ public class newtInterp {
                 double[] xs = new double[n];
                 double[] ys = new double [n];
                 double[] coeff = new double[n];
-                System.out.println("The answer is: "+EvalNewton(xs, ys, coeff, z, inputFile));
+                System.out.println("\nThe interpolated value is: "+EvalNewton(xs, ys, coeff, z, inputFile));
             } else{
 
             //Find n by reading number of inputs in each line of file
@@ -217,8 +213,7 @@ public class newtInterp {
             //If no -rand, run program with normal input file
             System.out.println("\nThe interpolated value is: "+EvalNewton(xs, ys, coeff, z, inputFile));
             timeEnd = System.nanoTime();
-            //System.out.printf("The interpolation calculation took: %d nanoseconds\n", (double)(timeEnd - timeStart));
-            System.out.println("Successfully interpolated the point. Enter another point to evaluate or exit with q.\n");
+            
             }
         }   
     }
